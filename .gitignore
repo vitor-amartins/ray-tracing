@@ -1,0 +1,5 @@
+# Ignore cahce
+__pycache__/
+
+# Ignore IDE
+.idea/
