@@ -3,7 +3,15 @@ from src.vector import Vector
 
 
 class Camera:
-    def __init__(self, c: Point, m: Point, vup: Vector, distance_to_screen: float, screen_height: int, screen_width: int):
+    def __init__(
+            self,
+            c: Point,
+            m: Point,
+            vup: Vector,
+            distance_to_screen: float,
+            screen_height: int,
+            screen_width: int,
+    ):
         self.c = c  # Camera position
         self.m = m  # Camera target
         self.vup = vup
@@ -16,10 +24,10 @@ class Camera:
         self.target_point = self.calculate_target_point()
 
     def calculate_base(self) -> tuple[Vector, Vector, Vector]:
-        w = self.c.difference(self.m).normalize()
-        u = self.vup.cross(w).normalize()
-        v = w.cross(u)
-        print(w, u, v)
+        w = self.m.difference(self.c).normalize()
+        u = w.cross(self.vup).normalize()
+        v = u.cross(w)
+        print('w:', w, '\nu:', u, '\nv:', v)
         return w, u, v
 
     def calculate_target_point(self) -> Point:
@@ -38,3 +46,14 @@ class Camera:
                 row.append(pixel_position)
             pixel_positions.append(row)
         return pixel_positions
+
+
+if __name__ == '__main__':
+    camera = Camera(
+        c=Point(0, 0, 0),
+        m=Point(0, 1, 0),
+        vup=Vector(0, 0, 1),
+        distance_to_screen=1,
+        screen_height=10,
+        screen_width=10,
+    )
