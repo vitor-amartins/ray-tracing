@@ -11,6 +11,7 @@ class Triangle(Shape):
         self.p1 = p1
         self.p2 = p2
         self.normal = self._calculate_normal()
+        self.containing_plane = self.get_containing_plane()
 
     def _calculate_normal(self) -> Vector:
         v0 = self.p1.difference(self.p0)
@@ -21,8 +22,7 @@ class Triangle(Shape):
         return Plane(self.p0, self.normal, self.color)
 
     def intersect(self, ray_origin: Point, ray_direction: Vector) -> tuple[bool, float]:
-        containing_plane = self.get_containing_plane()
-        intersect, t = containing_plane.intersect(ray_origin, ray_direction)
+        intersect, t = self.containing_plane.intersect(ray_origin, ray_direction)
         if not intersect:
             return False, 0
 

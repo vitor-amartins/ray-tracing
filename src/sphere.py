@@ -15,7 +15,7 @@ class Sphere(Shape):
         ray_to_center: Vector = self.center.difference(ray_origin)
 
         a = ray_direction.dot(ray_direction)
-        b = 2 * ray_to_center.dot(ray_direction)
+        b = -2 * ray_to_center.dot(ray_direction)
         c = ray_to_center.dot(ray_to_center) - self.radius * self.radius
 
         discriminant = b * b - 4 * a * c

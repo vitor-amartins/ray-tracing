@@ -1,4 +1,5 @@
 from src.camera import Camera
+from src.plane import Plane
 from src.point import Point
 from src.scene import Scene
 from src.sphere import Sphere
@@ -14,23 +15,28 @@ BLACK = Vector(0, 0, 0)
 
 if __name__ == '__main__':
     sphere1 = Sphere(
-        center=Point(5, 5, 5),
+        center=Point(0, 0, 8),
         radius=2,
         color=RED,
     )
-    sphere2 = Sphere(
-        center=Point(3, 3, 3),
-        radius=1,
+    # sphere2 = Sphere(
+    #     center=Point(3, 3, 3),
+    #     radius=1,
+    #     color=BLUE,
+    # )
+    triangle = Triangle(
+        p0=Point(0, 0, 3),
+        p1=Point(1, 1, 3),
+        p2=Point(1, 0, 3),
         color=BLUE,
     )
-    triangle = Triangle(
-        p0=Point(-1, -1, 1),
-        p1=Point(-2, -2, 2),
-        p2=Point(-4, -1, 1),
+    plane = Plane(
+        point=Point(0, 0, 10),
+        normal=Vector(0, 0, 1),
         color=GREEN,
     )
 
-    shapes = [sphere1, sphere2, triangle]
+    shapes = [sphere1, plane, triangle]
 
     scene = Scene(
         ambient_color=WHITE,
@@ -39,9 +45,9 @@ if __name__ == '__main__':
 
     camera = Camera(
         c=Point(0, 0, 0),
-        m=Point(1, 1, 1),
+        m=Point(0, 0, 1),
         vup=Vector(0, 1, 0),
-        distance_to_screen=0.5,
+        distance_to_screen=1,
         screen_height=200,
         screen_width=200,
     )
@@ -57,13 +63,17 @@ if __name__ == '__main__':
             min_t: float | None = None
             pixel_color = scene.ambient_color
 
+            if pixel == Point(0, 0, 1):
+                print('debug')
+
             for shape in shapes:
                 intersect, t = shape.intersect(ray_origin, ray_direction)
                 if intersect and (min_t is None or t < min_t):
                     pixel_color = shape.color
+                    min_t = t
 
             pixel_row.append(pixel_color)
 
         pixel_colors.append(pixel_row)
 
-    save_ppm(pixel_colors, 'outputs/002.ppm')
+    save_ppm(pixel_colors, 'outputs/009.ppm')

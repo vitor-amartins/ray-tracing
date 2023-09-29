@@ -23,3 +23,8 @@ class Point:
 
     def __str__(self):
         return f"Point({self.x}, {self.y}, {self.z})"
+
+    def __eq__(self, other):
+        if not isinstance(other, Point):
+            return False
+        return self.x == other.x and self.y == other.y and self.z == other.z

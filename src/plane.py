@@ -17,3 +17,6 @@ class Plane(Shape):
             if t > 0:
                 return True, t
         return False, 0
+
+    def __str__(self):
+        return f"Plane({self.point}, {self.normal})"
