@@ -2,18 +2,19 @@ from abc import abstractmethod
 
 from src.point import Point
 from src.vector import Vector
+from src.color import Color
 
 
 class Shape:
     def __init__(
             self,
-            color: Vector,
+            color: Color,
             kd: float = 0.5,
             ks: float = 0.5,
             ka: float = 0.5,
             kr: float = 0.5,
             kt: float = 0.5,
-            n: float = 0.5,
+            n: float = 0,
     ):
         self.color = color
         self.kd = kd  # Coeficiente difuso
