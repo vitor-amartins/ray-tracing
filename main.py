@@ -2,6 +2,7 @@ from src.camera import Camera
 from src.plane import Plane
 from src.point import Point
 from src.scene import Scene
+from src.shape import Shape
 from src.sphere import Sphere
 from src.triangle import Triangle
 from src.utils import save_ppm
@@ -33,17 +34,32 @@ if __name__ == '__main__':
         color=BLUE,
     )
     plane = Plane(
-        point=Point(0, 0, 0),
+        point=Point(0, 0, 10),
         normal=Vector(0, 0, 1),
         color=GREEN,
+        n=1.8,
     )
 
-    shapes = [sphere1,sphere2]
-    light_1 = Light((Point(0,10,3)),Color(1,1,1))
-    # light_2 = Light((Point(20,0,3)),Color(1,1,1))
+    shapes: list[Shape] = [
+        sphere1,
+        sphere2,
+        plane,
+    ]
+    light_1 = Light(
+        position=Point(0, 10, 0),
+        color=Color(1, 1, 1),
+    )
+    # light_2 = Light(
+    #     position=Point(20, 0, 3),
+    #     color=Color(1, 1, 1),
+    # )
+
     scene = Scene(
         ambient_color=BLACK,
-        lights=[light_1],
+        lights=[
+            light_1,
+            # light_2,
+        ],
     )
 
     camera = Camera(
@@ -54,47 +70,46 @@ if __name__ == '__main__':
         screen_height=200,
         screen_width=200,
     )
-    def reflexion_vector(n,L):
-        ctc = n.dot(L)*2
-        n.scale(ctc)
-        auxVet = Vector(n.x - L.x, n.y - L.y, n.z - L.z)
-        return auxVet
 
-    def phong(Ka,Od,Kd,ray_direction,ray_origin,t,normal,Ks,V,n):
-        #ambient component
-        color = Color(0,0,0)
-        color.multiply_value(Ka)
-        
+    def phong(
+            Ka: float,
+            Od: Color,
+            Kd: float,
+            ray_direction: Vector,
+            ray_origin: Point,
+            t: float,
+            normal: Vector,
+            Ks: float,
+            V: Vector,
+            n: float,
+    ):
+        v = ray_direction.scale(t)
+        intersection_point_ = ray_origin.translate(v)
+        normal.normalize()
+        # ambient component
+        I_full = Color()
+        I_amb = Color(Od.red, Od.green, Od.blue)
+        I_amb.multiply_value(Ka)
+        I_full.multiply_color(I_amb)
+
         for light in scene.lights:
-            #diffuse component
-            diffuse = Color(0,0,0)
-            diffuse.sum_color(Od)
-            diffuse.multiply_color(light.color)
-            diffuse.multiply_value(Kd)
-            L = Vector()
-            vetor = ray_direction.scale(t)
-            interception_point = ray_origin.translate(vetor)
-            L = interception_point.difference(light.position)
-            L.normalize()
-            normal.normalize()
-            zero = 0
+            # Diffuse component
+            L = intersection_point_.difference(light.position).normalize()
+            NL_dot = max(0.0, normal.dot(L))
+            coefficient = NL_dot * Kd
+            I_diffuse = Color(Od.red, Od.green, Od.blue).scale(coefficient)
+            I_full.sum_color(I_diffuse)
 
-            diffuse.multiply_value(max(zero,L.dot(normal)))
-            color.sum_color(diffuse)
-            #Specular component
+            # Specular component
+            R = normal.scale(2 * normal.dot(L)).subtract(L).normalize()  # 2 * (N.L) * N - L
+            RV_dot = max(0.0, R.dot(V))
+            if RV_dot == 0:
+                continue
+            I_specular = Color(light.color.red, light.color.green, light.color.blue).scale(RV_dot ** n).scale(Ks)
+            I_full.sum_color(I_specular)
 
-            # specular = Color(0,0,0)
-            # specular = light.color
-            # specular.multiply_value(Ks)
-            # R = reflexion_vector(normal,L)
-            # R.normalize()
-            # specular.multiply_value(pow(0,R.dot(V),n))
+        return I_full
 
-            # color.sum_color(specular)
-            
-
-
-        return color
     pixel_positions = camera.calculate_pixel_position()
     pixel_colors = []
     for row in pixel_positions:
@@ -112,21 +127,33 @@ if __name__ == '__main__':
             for shape in shapes:
                 intersect, t = shape.intersect(ray_origin, ray_direction)
                 if intersect and (min_t is None or t < min_t):
-                    V = Vector()
-                    
                     vetor = ray_direction.scale(t)
                     interception_point = ray_origin.translate(vetor)
                     V = interception_point.difference(ray_origin)
                     V.normalize()
-                    if hasattr(shape,'radius'):
-                        pixel_color = phong(shape.ka,shape.color,shape.kd,ray_direction,ray_origin,t,shape.center.difference(interception_point),shape.ks,V,shape.n)
-                        min_t = t
+                    normal: Vector | None = None
+                    if isinstance(shape, Sphere):
+                        normal = shape.center.difference(interception_point)
+                    elif isinstance(shape, Plane) or isinstance(shape, Triangle):
+                        normal = shape.normal
                     else:
-                        pixel_color = phong(shape.ka,shape.color,shape.kd,ray_direction,ray_origin,t,shape.normal,shape.ks,V,shape.n)
-                        min_t = t
+                        raise ValueError(f'Unknown shape: {shape}')
+                    pixel_color = phong(
+                        Ka=shape.ka,
+                        Od=shape.color,
+                        Kd=shape.kd,
+                        ray_direction=ray_direction,
+                        ray_origin=ray_origin,
+                        t=t,
+                        normal=normal,
+                        Ks=shape.ks,
+                        V=V,
+                        n=shape.n,
+                    )
+                    min_t = t
 
             pixel_row.append(pixel_color)
 
         pixel_colors.append(pixel_row)
 
-    save_ppm(pixel_colors, 'outputs/012.ppm')
+    save_ppm(pixel_colors, 'outputs/016.ppm')

@@ -10,11 +10,11 @@ class Shape:
             self,
             color: Color,
             kd: float = 0.5,
-            ks: float = 0.5,
+            ks: float = 0.005,
             ka: float = 0.5,
             kr: float = 0.5,
             kt: float = 0.5,
-            n: float = 0,
+            n: float = 3,
     ):
         self.color = color
         self.kd = kd  # Coeficiente difuso

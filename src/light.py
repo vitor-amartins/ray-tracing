@@ -1,5 +1,4 @@
 from src.point import Point
-from src.vector import Vector
 from src.color import Color
 
 
