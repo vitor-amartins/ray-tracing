@@ -10,6 +10,7 @@ from src.vector import Vector
 from src.color import Color
 from src.light import Light
 
+MAX_REFLECTION_DEPTH = 3
 RED = Color(1, 0, 0)
 GREEN = Color(0, 1, 0)
 BLUE = Color(0, 0, 1)
@@ -21,12 +22,14 @@ sphere1 = Sphere(
     center=Point(0, 0, 8),
     radius=2,
     color=RED,
+    kr=0,
 )
 sphere2 = Sphere(
     center=Point(0, 0, 6),
     radius=1,
     color=BLUE,
     kd=2,
+    kr=0,
 )
 triangle = Triangle(
     p0=Point(0, 0, 3),
@@ -132,7 +135,10 @@ def phong(
     return _I_full
 
 
-def cast(ray_origin: Point, ray_direction: Vector):
+def cast(ray_origin: Point, ray_direction: Vector, depth: int = 0) -> Color:
+    if depth > MAX_REFLECTION_DEPTH:
+        return scene.ambient_color
+
     min_t = float('inf')
     pixel_color = scene.ambient_color
 
@@ -141,6 +147,7 @@ def cast(ray_origin: Point, ray_direction: Vector):
         if not intersect or t >= min_t:
             continue
         interception_point = ray_origin.translate(ray_direction.scale(t))
+        normal = shape.get_normal(interception_point)
         _V = interception_point.difference(ray_origin).normalize()  # Vetor de visualização
         pixel_color = phong(
             ka=shape.ka,
@@ -149,13 +156,18 @@ def cast(ray_origin: Point, ray_direction: Vector):
             ray_direction=ray_direction,
             ray_origin=ray_origin,
             t=t,
-            normal=shape.get_normal(interception_point),
+            normal=normal,
             ks=shape.ks,
             v=_V,
             n=shape.n,
             shape_index=shapes.index(shape),
         )
         min_t = t
+        reflected_direction = ray_direction.subtract(normal.scale(2 * ray_direction.dot(normal)))
+        reflection_origin = interception_point.translate(reflected_direction.scale(0.0001))
+        reflection_color = cast(reflection_origin, reflected_direction, depth + 1)
+
+        pixel_color.sum_color(reflection_color.scale(shape.kr))
 
     return pixel_color
 
@@ -173,7 +185,7 @@ def main():
 
         pixel_colors.append(pixel_row)
 
-    save_ppm(pixel_colors, 'outputs/021.ppm')
+    save_ppm(pixel_colors, 'outputs/022.ppm')
 
 
 if __name__ == '__main__':
