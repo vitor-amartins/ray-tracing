@@ -71,6 +71,18 @@ if __name__ == '__main__':
         screen_width=200,
     )
 
+    def is_in_shadow(intersection_point: Point, light: Light, shape_index: int) -> bool:
+        ray_direction_ = light.position.difference(intersection_point).normalize()
+        ray_origin_ = intersection_point.translate(ray_direction_.scale(0.0001))
+
+        for i, shape_ in enumerate(shapes):
+            if i == shape_index:
+                continue
+            intersect_, _ = shape_.intersect(ray_origin_, ray_direction_)
+            if intersect_:
+                return True
+        return False
+
     def phong(
             Ka: float,
             Od: Color,
@@ -82,6 +94,7 @@ if __name__ == '__main__':
             Ks: float,
             V: Vector,
             n: float,
+            shape_index: int,
     ):
         v = ray_direction.scale(t)
         intersection_point_ = ray_origin.translate(v)
@@ -93,6 +106,9 @@ if __name__ == '__main__':
         I_full.multiply_color(I_amb)
 
         for light in scene.lights:
+            # Shadow from other objects
+            if is_in_shadow(intersection_point_, light, shape_index):
+                continue
             # Diffuse component
             L = intersection_point_.difference(light.position).normalize()
             NL_dot = max(0.0, normal.dot(L))
@@ -149,6 +165,7 @@ if __name__ == '__main__':
                         Ks=shape.ks,
                         V=V,
                         n=shape.n,
+                        shape_index=shapes.index(shape),
                     )
                     min_t = t
 
@@ -156,4 +173,4 @@ if __name__ == '__main__':
 
         pixel_colors.append(pixel_row)
 
-    save_ppm(pixel_colors, 'outputs/016.ppm')
+    save_ppm(pixel_colors, 'outputs/017.ppm')
