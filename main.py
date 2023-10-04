@@ -1,4 +1,5 @@
 from src.camera import Camera
+from src.cone import Cone
 from src.plane import Plane
 from src.point import Point
 from src.scene import Scene
@@ -40,6 +41,15 @@ sphere3 = Sphere(
     kr=0,
     kt=3,
 )
+cone = Cone(
+    apex=Point(4, 4, 8),
+    axis_direction=Vector(0, 1, 0),
+    angle=30,
+    height=2,
+    color=BLACK,
+    kr=0,
+    kt=0,
+)
 triangle = Triangle(
     p0=Point(0, 0, 3),
     p1=Point(1, 1, 3),
@@ -70,6 +80,7 @@ shapes: list[Shape] = [
     sphere2,
     sphere3,
     plane,
+    cone,
 ]
 scene = Scene(
     ambient_color=BLACK,
@@ -216,7 +227,7 @@ def main():
 
         pixel_colors.append(pixel_row)
 
-    save_ppm(pixel_colors, 'outputs/024.ppm')
+    save_ppm(pixel_colors, 'outputs/025.ppm')
 
 
 if __name__ == '__main__':

@@ -28,5 +28,5 @@ class Sphere(Shape):
                 return True, min(t1, t2)
         return False, 0
 
-    def get_normal(self, interception_point: Point | None = None) -> Vector:
+    def get_normal(self, interception_point: Point) -> Vector:
         return self.center.difference(interception_point)

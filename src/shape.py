@@ -29,5 +29,5 @@ class Shape:
         pass
 
     @abstractmethod
-    def get_normal(self, interception_point: Point | None = None) -> Vector:
+    def get_normal(self, interception_point: Point) -> Vector:
         pass

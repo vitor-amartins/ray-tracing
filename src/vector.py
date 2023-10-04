@@ -35,3 +35,8 @@ class Vector:
 
     def __str__(self):
         return f"Vector({self.x}, {self.y}, {self.z})"
+
+    def __eq__(self, other):
+        if not isinstance(other, Vector):
+            return False
+        return self.x == other.x and self.y == other.y and self.z == other.z
