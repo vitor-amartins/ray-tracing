@@ -23,6 +23,7 @@ sphere1 = Sphere(
     radius=2,
     color=RED,
     kr=0,
+    kt=0,
 )
 sphere2 = Sphere(
     center=Point(0, 0, 6),
@@ -30,6 +31,14 @@ sphere2 = Sphere(
     color=BLUE,
     kd=2,
     kr=0,
+    kt=0,
+)
+sphere3 = Sphere(
+    center=Point(6, 0, 8),
+    radius=1.5,
+    color=Color(255, 165, 0).scale(1 / 255),
+    kr=0,
+    kt=3,
 )
 triangle = Triangle(
     p0=Point(0, 0, 3),
@@ -42,6 +51,7 @@ plane = Plane(
     normal=Vector(0, 0, 1),
     color=GREEN,
     n=1.8,
+    kt=0,
 )
 
 # Lights
@@ -58,6 +68,7 @@ light_2 = Light(
 shapes: list[Shape] = [
     sphere1,
     sphere2,
+    sphere3,
     plane,
 ]
 scene = Scene(
@@ -135,6 +146,17 @@ def phong(
     return _I_full
 
 
+def get_refracted_direction(ray_direction: Vector, normal: Vector, n1: float, n2: float = 1) -> Vector | None:
+    n_ratio = n1 / n2
+
+    cos_theta_i = -ray_direction.dot(normal)
+    cos_theta_r = 1 - (n_ratio ** 2) * (1 - (cos_theta_i ** 2))
+    if cos_theta_r < 0:
+        return None
+    normal_scaled = normal.scale(n_ratio * cos_theta_i - cos_theta_r**0.5)
+    return ray_direction.scale(n_ratio).add(normal_scaled).normalize()
+
+
 def cast(ray_origin: Point, ray_direction: Vector, depth: int = 0) -> Color:
     if depth > MAX_REFLECTION_DEPTH:
         return scene.ambient_color
@@ -146,9 +168,11 @@ def cast(ray_origin: Point, ray_direction: Vector, depth: int = 0) -> Color:
         intersect, t = shape.intersect(ray_origin, ray_direction)
         if not intersect or t >= min_t:
             continue
+        min_t = t
         interception_point = ray_origin.translate(ray_direction.scale(t))
         normal = shape.get_normal(interception_point)
         _V = interception_point.difference(ray_origin).normalize()  # Vetor de visualização
+        # Diffuse and specular
         pixel_color = phong(
             ka=shape.ka,
             od=shape.color,
@@ -162,12 +186,19 @@ def cast(ray_origin: Point, ray_direction: Vector, depth: int = 0) -> Color:
             n=shape.n,
             shape_index=shapes.index(shape),
         )
-        min_t = t
-        reflected_direction = ray_direction.subtract(normal.scale(2 * ray_direction.dot(normal)))
-        reflection_origin = interception_point.translate(reflected_direction.scale(0.0001))
-        reflection_color = cast(reflection_origin, reflected_direction, depth + 1)
-
-        pixel_color.sum_color(reflection_color.scale(shape.kr))
+        # Reflection
+        if shape.kr:
+            reflected_direction = ray_direction.subtract(normal.scale(2 * ray_direction.dot(normal)))
+            reflection_origin = interception_point.translate(reflected_direction.scale(0.0001))
+            reflection_color = cast(reflection_origin, reflected_direction, depth + 1)
+            pixel_color.sum_color(reflection_color.scale(shape.kr))
+        # Refraction
+        if shape.kt:
+            refracted_direction = get_refracted_direction(ray_direction, normal, shape.kt)
+            if refracted_direction:
+                refraction_origin = interception_point.translate(refracted_direction.scale(0.0001))
+                refraction_color = cast(refraction_origin, refracted_direction, depth + 1)
+                pixel_color.sum_color(refraction_color.scale(shape.kt))
 
     return pixel_color
 
@@ -185,7 +216,7 @@ def main():
 
         pixel_colors.append(pixel_row)
 
-    save_ppm(pixel_colors, 'outputs/022.ppm')
+    save_ppm(pixel_colors, 'outputs/024.ppm')
 
 
 if __name__ == '__main__':
