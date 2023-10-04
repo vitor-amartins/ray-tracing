@@ -18,5 +18,8 @@ class Plane(Shape):
                 return True, t
         return False, 0
 
+    def get_normal(self, interception_point: Point | None = None) -> Vector:
+        return self.normal
+
     def __str__(self):
         return f"Plane({self.point}, {self.normal})"

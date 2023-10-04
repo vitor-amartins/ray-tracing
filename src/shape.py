@@ -10,7 +10,7 @@ class Shape:
             self,
             color: Color,
             kd: float = 0.5,
-            ks: float = 0.005,
+            ks: float = 0.5,
             ka: float = 0.5,
             kr: float = 0.5,
             kt: float = 0.5,
@@ -26,4 +26,8 @@ class Shape:
 
     @abstractmethod
     def intersect(self, ray_origin: Point, ray_direction: Vector) -> tuple[bool, float]:
+        pass
+
+    @abstractmethod
+    def get_normal(self, interception_point: Point | None = None) -> Vector:
         pass

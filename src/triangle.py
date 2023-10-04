@@ -47,3 +47,6 @@ class Triangle(Shape):
         if 0 <= alpha <= 1 and 0 <= beta <= 1 and 0 <= gamma <= 1 and t > 0:
             return True, t
         return False, 0
+
+    def get_normal(self, interception_point: Point | None = None) -> Vector:
+        return self.normal

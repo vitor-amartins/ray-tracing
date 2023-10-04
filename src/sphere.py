@@ -27,3 +27,6 @@ class Sphere(Shape):
             if t1 > 0 or t2 > 0:
                 return True, min(t1, t2)
         return False, 0
+
+    def get_normal(self, interception_point: Point | None = None) -> Vector:
+        return self.center.difference(interception_point)

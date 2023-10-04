@@ -40,4 +40,6 @@ class Color:
 
     def scale(self, scalar: float) -> 'Color':
         return Color(self.red * scalar, self.green * scalar, self.blue * scalar)
-    
+
+    def __str__(self):
+        return f"Color({self.red}, {self.green}, {self.blue})"

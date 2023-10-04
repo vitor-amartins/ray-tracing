@@ -1,3 +1,5 @@
+import math
+
 from src.point import Point
 from src.vector import Vector
 
@@ -22,6 +24,11 @@ class Camera:
         self.w, self.u, self.v = self.calculate_base()
         # Center of the screen
         self.target_point = self.calculate_target_point()
+        # FOV
+        self.horizontal_fov = 2 * math.atan((self.screen_width / 2) / self.distance_to_screen)
+        self.vertical_fov = 2 * math.atan((self.screen_height / 2) / self.distance_to_screen)
+        self.pixel_size_x = self.screen_width / (2 * math.tan(self.horizontal_fov / 2))
+        self.pixel_size_y = self.screen_height / (2 * math.tan(self.vertical_fov / 2))
 
     def calculate_base(self) -> tuple[Vector, Vector, Vector]:
         w = self.m.difference(self.c).normalize()
@@ -38,10 +45,11 @@ class Camera:
         for y in range(self.screen_height):
             row = []
             for x in range(self.screen_width):
-                u = ((2 * x) / self.screen_width) - 1
-                v = 1 - ((2 * y) / self.screen_height)
-
-                pixel_position = self.target_point.translate(self.u.scale(u)).translate(self.v.scale(v))
+                screen_x = (x + 0.5) / self.screen_width * 2 - 1
+                screen_y = (y + 0.5) / self.screen_height * 2 - 1
+                u_factor = self.u.scale(screen_x * self.pixel_size_x)
+                v_factor = self.v.scale(-screen_y * self.pixel_size_y)
+                pixel_position = self.target_point.translate(u_factor).translate(v_factor)
 
                 row.append(pixel_position)
             pixel_positions.append(row)
